@@ -1,4 +1,5 @@
 // ===== UI UTILITIES =====
+
 // ===== TERMINAL =====
 const terminalOverlay = document.getElementById('terminal-overlay');
 const terminalBody = document.getElementById('terminal-body');
@@ -7,17 +8,21 @@ const terminalClose = document.getElementById('terminal-close');
 const terminalClear = document.getElementById('terminal-clear');
 
 function showTerminal() {
+    if (!terminalOverlay) return;
     terminalOverlay.classList.add('active');
-    terminalBody.innerHTML = '';
-    terminalStatus.textContent = 'Running...';
-    terminalStatus.className = 'terminal-status running';
+    if (terminalBody) terminalBody.innerHTML = '';
+    if (terminalStatus) {
+        terminalStatus.textContent = 'Running...';
+        terminalStatus.className = 'terminal-status running';
+    }
 }
 
 function hideTerminal() {
-    terminalOverlay.classList.remove('active');
+    if (terminalOverlay) terminalOverlay.classList.remove('active');
 }
 
 function termLog(text, type = 'output') {
+    if (!terminalBody) return;
     const line = document.createElement('div');
     line.className = 'terminal-line ' + type;
     line.textContent = text;
@@ -26,15 +31,22 @@ function termLog(text, type = 'output') {
 }
 
 function termSetStatus(text, type = 'info') {
+    if (!terminalStatus) return;
     terminalStatus.textContent = text;
     terminalStatus.className = 'terminal-status ' + type;
 }
 
-terminalClose.addEventListener('click', hideTerminal);
-terminalClear.addEventListener('click', () => { terminalBody.innerHTML = ''; });
-terminalOverlay.addEventListener('click', (e) => {
-    if (e.target === terminalOverlay) hideTerminal();
-});
+if (terminalClose) {
+    terminalClose.addEventListener('click', hideTerminal);
+}
+if (terminalClear) {
+    terminalClear.addEventListener('click', () => { if (terminalBody) terminalBody.innerHTML = ''; });
+}
+if (terminalOverlay) {
+    terminalOverlay.addEventListener('click', (e) => {
+        if (e.target === terminalOverlay) hideTerminal();
+    });
+}
 
 
 // Custom toast notifications
@@ -66,21 +78,41 @@ function createToastContainer() {
 }
 
 function switchView(name) {
+    // Guard: ensure globals exist (defined in app.js)
+    if (typeof state === 'undefined' || typeof views === 'undefined' || typeof navItems === 'undefined') {
+        console.warn('switchView called before app.js initialized');
+        return;
+    }
     state.currentView = name;
     navItems.forEach(n => n.classList.toggle('active', n.dataset.view === name));
     Object.values(views).forEach(v => v.classList.remove('active'));
-    views[name].classList.add('active');
-    if (name === 'tools') loadTools();
-    if (name === 'pipelines') loadPipelines();
-    if (name === 'rag') loadRagStats();
+    if (views[name]) views[name].classList.add('active');
+    if (name === 'tools' && typeof loadTools === 'function') loadTools();
+    if (name === 'pipelines' && typeof loadPipelines === 'function') loadPipelines();
+    if (name === 'rag' && typeof loadRagStats === 'function') loadRagStats();
 }
 
-navItems.forEach(item => {
-    item.addEventListener('click', () => {
-        const viewName = item.dataset.view;
-        if (viewName) switchView(viewName);
+// Safe nav initialization — runs after DOM ready but checks for globals
+function initNav() {
+    if (typeof navItems === 'undefined') {
+        console.warn('navItems not defined yet, retrying...');
+        setTimeout(initNav, 50);
+        return;
+    }
+    navItems.forEach(item => {
+        item.addEventListener('click', () => {
+            const viewName = item.dataset.view;
+            if (viewName) switchView(viewName);
+        });
     });
-});
+}
+
+// Initialize when DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initNav);
+} else {
+    initNav();
+}
 
 // Confirm dialog in project style
 function showConfirm(message, onConfirm, onCancel) {

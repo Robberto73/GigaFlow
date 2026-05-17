@@ -3,7 +3,7 @@ from functools import lru_cache
 
 class Settings(BaseSettings):
     # LLM Provider: "gigachat" | "local_openai" | "auto"
-    llm_provider: str = "gigachat"
+    llm_provider: str = "local_openai"
 
     # GigaChat
     gigachat_credentials: str = ""
@@ -15,7 +15,7 @@ class Settings(BaseSettings):
     # Local OpenAI-compatible (LM Studio, Ollama, etc.)
     local_base_url: str = "http://127.0.0.1:5000/v1"
     local_api_key: str = "not-needed"
-    local_model: str = "local-model"
+    local_model: str = "moonshotai_kimi-linear-48b-a3b-instruct"
     local_temperature: float = 0.3
     local_max_tokens: int = 4096
 

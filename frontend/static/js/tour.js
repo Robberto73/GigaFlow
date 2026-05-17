@@ -1,14 +1,31 @@
 // ===== TOUR / HELP GUIDE =====
-const tourOverlay = document.getElementById('tour-overlay');
-const tourSpotlight = document.getElementById('tour-spotlight');
-const tourCard = document.getElementById('tour-card');
-const tourStep = document.getElementById('tour-step');
-const tourTitle = document.getElementById('tour-title');
-const tourDesc = document.getElementById('tour-desc');
-const tourNext = document.getElementById('tour-next');
-const tourPrev = document.getElementById('tour-prev');
-const tourSkip = document.getElementById('tour-skip');
-const tourClose = document.getElementById('tour-close');
+
+let tourOverlay, tourSpotlight, tourCard, tourStep, tourTitle, tourDesc, tourNext, tourPrev, tourSkip, tourClose;
+
+function initTour() {
+    tourOverlay = document.getElementById('tour-overlay');
+    tourSpotlight = document.getElementById('tour-spotlight');
+    tourCard = document.getElementById('tour-card');
+    tourStep = document.getElementById('tour-step');
+    tourTitle = document.getElementById('tour-title');
+    tourDesc = document.getElementById('tour-desc');
+    tourNext = document.getElementById('tour-next');
+    tourPrev = document.getElementById('tour-prev');
+    tourSkip = document.getElementById('tour-skip');
+    tourClose = document.getElementById('tour-close');
+
+    // Attach listeners only if elements exist
+    if (tourNext) tourNext.addEventListener('click', () => showTourStep(currentTourStep + 1));
+    if (tourPrev) tourPrev.addEventListener('click', () => showTourStep(currentTourStep - 1));
+    if (tourSkip) tourSkip.addEventListener('click', endTour);
+    if (tourClose) tourClose.addEventListener('click', endTour);
+
+    const startBtn = document.getElementById('tour-start-btn');
+    if (startBtn) startBtn.addEventListener('click', startTour);
+
+    // Auto-start after a short delay
+    setTimeout(maybeStartTour, 800);
+}
 
 const tourSteps = [
     { target: '.sidebar-header', title: 'Welcome to GigaFlow', desc: 'GigaFlow is a visual pipeline builder for AI agents. Connect nodes to create automation workflows using GigaChat or local LLMs.', position: 'right' },
@@ -27,7 +44,7 @@ let currentTourStep = 0;
 
 function startTour() {
     currentTourStep = 0;
-    tourOverlay.classList.add('active');
+    if (tourOverlay) tourOverlay.classList.add('active');
     showTourStep(0);
 }
 
@@ -37,13 +54,13 @@ function showTourStep(idx) {
     const step = tourSteps[idx];
     const target = document.querySelector(step.target);
 
-    tourStep.textContent = (idx + 1) + ' / ' + tourSteps.length;
-    tourTitle.textContent = step.title;
-    tourDesc.textContent = step.desc;
-    tourPrev.style.display = idx === 0 ? 'none' : 'inline-flex';
-    tourNext.textContent = idx === tourSteps.length - 1 ? 'Finish' : 'Next';
+    if (tourStep) tourStep.textContent = (idx + 1) + ' / ' + tourSteps.length;
+    if (tourTitle) tourTitle.textContent = step.title;
+    if (tourDesc) tourDesc.textContent = step.desc;
+    if (tourPrev) tourPrev.style.display = idx === 0 ? 'none' : 'inline-flex';
+    if (tourNext) tourNext.textContent = idx === tourSteps.length - 1 ? 'Finish' : 'Next';
 
-    if (target) {
+    if (target && tourSpotlight && tourCard) {
         const rect = target.getBoundingClientRect();
         const pad = 8;
         tourSpotlight.style.left = (rect.left - pad) + 'px';
@@ -62,24 +79,29 @@ function showTourStep(idx) {
         tourCard.style.left = cardLeft + 'px';
         tourCard.style.top = cardTop + 'px';
     } else {
-        tourSpotlight.style.width = '0px'; tourSpotlight.style.height = '0px';
-        tourCard.style.left = (window.innerWidth / 2 - 170) + 'px';
-        tourCard.style.top = (window.innerHeight / 2 - 100) + 'px';
+        if (tourSpotlight) {
+            tourSpotlight.style.width = '0px';
+            tourSpotlight.style.height = '0px';
+        }
+        if (tourCard) {
+            tourCard.style.left = (window.innerWidth / 2 - 170) + 'px';
+            tourCard.style.top = (window.innerHeight / 2 - 100) + 'px';
+        }
     }
 }
 
 function endTour() {
-    tourOverlay.classList.remove('active');
+    if (tourOverlay) tourOverlay.classList.remove('active');
     localStorage.setItem('gigaflow_tour_seen', 'true');
 }
 
-tourNext.addEventListener('click', () => showTourStep(currentTourStep + 1));
-tourPrev.addEventListener('click', () => showTourStep(currentTourStep - 1));
-tourSkip.addEventListener('click', endTour);
-tourClose.addEventListener('click', endTour);
-
 function maybeStartTour() {
-    if (!localStorage.getItem('gigaflow_tour_seen')) setTimeout(startTour, 800);
+    if (!localStorage.getItem('gigaflow_tour_seen')) startTour();
 }
 
-document.getElementById('tour-start-btn').addEventListener('click', startTour);
+// Initialize when DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initTour);
+} else {
+    initTour();
+}
