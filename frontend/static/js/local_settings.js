@@ -1,7 +1,7 @@
 // ===== LOCAL MODEL SETTINGS =====
 const localSettings = {
     port: 5000,
-    maxConcurrent: 4,
+    maxConcurrent: 2,
 };
 
 function initLocalSettings() {
