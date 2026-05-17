@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GigaFlow — Pipeline Builder</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+                        <circle cx="14" cy="14" r="12" stroke="#111" stroke-width="2" fill="none"/>
+                        <path d="M8 14 L12 18 L20 10" stroke="#111" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span>GigaFlow</span>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <button class="nav-item active" data-view="canvas">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="7" height="7" rx="1"/>
+                        <rect x="14" y="3" width="7" height="7" rx="1"/>
+                        <rect x="3" y="14" width="7" height="7" rx="1"/>
+                        <rect x="14" y="14" width="7" height="7" rx="1"/>
+                    </svg>
+                    Canvas
+                </button>
+                <button class="nav-item" data-view="chat">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                    </svg>
+                    Chat
+                </button>
+                <button class="nav-item" data-view="tools">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+                    </svg>
+                    Tools
+                </button>
+                <button class="nav-item" data-view="rag">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"/>
+                        <path d="m21 21-4.35-4.35"/>
+                    </svg>
+                    RAG
+                </button>
+                <button class="nav-item" data-view="pipelines">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+                    </svg>
+                    Pipelines
+                </button>
+                <div class="sidebar-divider"></div>
+                <button class="nav-item" id="tour-start-btn">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="M12 16v-4"/><path d="M12 8h.01"/>
+                    </svg>
+                    Help Guide
+                </button>
+            </nav>
+
+            <div class="sidebar-section status-section">
+                <div class="sidebar-label">Connections</div>
+                <div class="status-row" id="status-gigachat">
+                    <span class="status-dot" id="dot-gigachat"></span>
+                    <span class="status-name">GigaChat</span>
+                    <span class="status-text" id="text-gigachat">—</span>
+                </div>
+                <div class="status-row" id="status-local">
+                    <span class="status-dot" id="dot-local"></span>
+                    <span class="status-name">Local LLM</span>
+                    <span class="status-text" id="text-local">—</span>
+                </div>
+                <div class="status-row" id="status-rag">
+                    <span class="status-dot" id="dot-rag"></span>
+                    <span class="status-name">RAG (BGE)</span>
+                    <span class="status-text" id="text-rag">—</span>
+                </div>
+                <button class="btn-test-provider" id="test-provider-btn">Test Connections</button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Canvas View -->
+            <div class="view active" id="canvas-view">
+                <div class="canvas-main">
+                    <div class="canvas-workspace">
+                        <div class="canvas-toolbar">
+                    <div class="toolbar-group">
+                        <button class="btn-icon" id="add-agent-btn" title="Add Agent">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <rect x="3" y="3" width="18" height="18" rx="2"/>
+                                <path d="M12 8v8m-4-4h8"/>
+                            </svg>
+                            Agent
+                        </button>
+                        <button class="btn-icon" id="add-tool-btn" title="Add Tool">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+                            </svg>
+                            Tool
+                        </button>
+                        <button class="btn-icon" id="add-judge-btn" title="Add Judge">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                            </svg>
+                            Judge
+                        </button>
+                        <button class="btn-icon" id="add-loop-btn" title="Add Loop">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                                <path d="M3 3v5h5"/>
+                                <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/>
+                                <path d="M16 21h5v-5"/>
+                            </svg>
+                            Loop
+                        </button>
+                        <button class="btn-icon" id="add-condition-btn" title="Add Condition">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <path d="M6 3h12l4 6-10 13L2 9z"/>
+                            </svg>
+                            Condition
+                        </button>
+                        <button class="btn-icon" id="add-rag-btn" title="Add RAG">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <circle cx="11" cy="11" r="8"/>
+                                <path d="m21 21-4.35-4.35"/>
+                            </svg>
+                            RAG
+                        </button>
+                        <button class="btn-icon" id="add-input-btn" title="Add Input">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <path d="M5 12h14"/><path d="M12 5l7 7-7 7"/>
+                            </svg>
+                            Input
+                        </button>
+                        <button class="btn-icon" id="add-output-btn" title="Add Output">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <path d="M12 5v14"/><path d="M19 12l-7 7-7-7"/>
+                            </svg>
+                            Output
+                        </button>
+                    </div>
+                    <div class="toolbar-group">
+                        <button class="btn-primary" id="run-pipeline-btn">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <polygon points="5 3 19 12 5 21 5 3"/>
+                            </svg>
+                            Run
+                        </button>
+                        <button class="btn-secondary" id="save-pipeline-btn">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                                <polyline points="17 21 17 13 7 13 7 21"/>
+                                <polyline points="7 3 7 8 15 8"/>
+                            </svg>
+                            Save
+                        </button>
+                        <button class="btn-secondary" id="clear-canvas-btn">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <polyline points="3 6 5 6 21 6"/>
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                            </svg>
+                            Clear
+                        </button>
+                    </div>
+                </div>
+
+                <div class="canvas-container" id="canvas-container">
+                    <svg class="canvas-svg" id="canvas-svg">
+                        <defs>
+                            <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#999"/>
+                            </marker>
+                        </defs>
+                        <g id="edges-layer"></g>
+                        <g id="nodes-layer"></g>
+                    </svg>
+                    <div class="canvas-nodes" id="canvas-nodes"></div>
+                </div>
+
+                    </div>
+                    <!-- Canvas Chat -->
+                    <div class="canvas-chat" id="canvas-chat">
+                        <div class="canvas-chat-header">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                            </svg>
+                            <span>Canvas Architect</span>
+                            <button class="canvas-chat-clear" id="canvas-chat-clear" title="Clear chat">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="3 6 5 6 21 6"/>
+                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="canvas-chat-messages" id="canvas-chat-messages"></div>
+                        <div class="canvas-chat-input-area">
+                            <div class="canvas-chat-input-wrapper">
+                                <textarea id="canvas-chat-input" placeholder="Opishite chto vy khotite sozdat..." rows="1"></textarea>
+                                <button class="btn-send" id="canvas-chat-send">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                        <line x1="22" y1="2" x2="11" y2="13"/>
+                                        <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Node Config Panel -->
+                <div class="config-panel" id="config-panel">
+                    <div class="config-header">
+                        <h3 id="config-title">Node Configuration</h3>
+                        <button class="btn-close" id="close-config">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <line x1="18" y1="6" x2="6" y2="18"/>
+                                <line x1="6" y1="6" x2="18" y2="18"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="config-body" id="config-body"></div>
+                </div>
+            </div>
+
+            <!-- Chat View -->
+            <div class="view" id="chat-view">
+                <div class="chat-container">
+                    <div class="chat-messages" id="chat-messages"></div>
+                    <div class="chat-input-area">
+                        <div class="chat-input-wrapper">
+                            <textarea id="chat-input" placeholder="Opishite chto vy khotite sdelat..." rows="1"></textarea>
+                            <div class="chat-actions">
+                                <button class="btn-icon-sm" id="attach-file-btn" title="Attach file">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
+                                    </svg>
+                                </button>
+                                <button class="btn-send" id="send-chat-btn">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                        <line x1="22" y1="2" x2="11" y2="13"/>
+                                        <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tools View -->
+            <div class="view" id="tools-view">
+                <div class="tools-layout">
+                    <div class="tools-sidebar">
+                        <h2>Available Tools</h2>
+                        <div class="tools-list" id="tools-list"></div>
+                    </div>
+                    <div class="tools-editor">
+                        <div class="editor-header">
+                            <h3>Create New Tool</h3>
+                            <button class="btn-primary" id="validate-tool-btn">Validate</button>
+                            <button class="btn-primary" id="save-tool-btn">Save Tool</button>
+                        </div>
+                        <div class="editor-body">
+                            <div class="tool-example">
+                                <h4>Example Tool Template</h4>
+                                <pre><code>def gigaflow_tool(description="", parameters=None, tool_type="generic"):
+    def decorator(func):
+        func._is_gigaflow_tool = True
+        func.description = description
+        func.parameters = parameters or {}
+        func.tool_type = tool_type
+        return func
+    return decorator
+
+@gigaflow_tool(
+    description="Summarize text to specified word count",
+    parameters={
+        "text": {"type": "string", "description": "Text to summarize"},
+        "max_words": {"type": "integer", "description": "Maximum words", "default": 100}
+    },
+    tool_type="text"
+)
+def summarize(text: str, max_words: int = 100) -> str:
+    words = text.split()
+    if len(words) &lt;= max_words:
+        return text
+    return " ".join(words[:max_words]) + "..."</code></pre>
+                            </div>
+                            <div class="form-group">
+                                <label>Tool Name</label>
+                                <input type="text" id="tool-name" placeholder="my_custom_tool">
+                            </div>
+                            <div class="form-group">
+                                <label>Code (Python)</label>
+                                <textarea id="tool-code" rows="20" placeholder="Paste your tool code here or modify the example above..."></textarea>
+                            </div>
+                            <div class="validation-result" id="validation-result"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RAG View -->
+            <div class="view" id="rag-view">
+                <div class="rag-layout">
+                    <div class="rag-upload">
+                        <h2>Document Upload</h2>
+                        <div class="drop-zone" id="drop-zone">
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="1.5">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                <polyline points="17 8 12 3 7 8"/>
+                                <line x1="12" y1="3" x2="12" y2="15"/>
+                            </svg>
+                            <p>Drop files here or click to upload</p>
+                            <input type="file" id="rag-file-input" multiple accept=".txt,.md,.pdf,.docx,.py,.json,.csv">
+                        </div>
+                    </div>
+                    <div class="rag-search">
+                        <h2>Search Documents</h2>
+                        <div class="search-box">
+                            <input type="text" id="rag-query" placeholder="Enter search query...">
+                            <button class="btn-primary" id="rag-search-btn">Search</button>
+                        </div>
+                        <div class="rag-results" id="rag-results"></div>
+                    </div>
+                    <div class="rag-stats">
+                        <h2>Statistics</h2>
+                        <div class="stats-grid" id="rag-stats"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pipelines View -->
+            <div class="view" id="pipelines-view">
+                <div class="pipelines-layout">
+                    <h2>Saved Pipelines</h2>
+                    <div class="pipelines-grid" id="pipelines-grid"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+
+
+
+    <!-- Context Menu -->
+    <div class="context-menu" id="context-menu">
+        <div class="context-item" data-action="rename"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Rename</div>
+        <div class="context-item" data-action="color"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.01 17.461 2 12 2z"/></svg> Set Color</div>
+        <div class="context-separator"></div>
+        <div class="context-item danger" data-action="delete"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg> Delete</div>
+    </div>
+
+    <!-- Color Picker -->
+    <div class="color-picker" id="color-picker">
+        <div class="color-option" style="background:#111" data-color=""></div>
+        <div class="color-option" style="background:#ef4444" data-color="#ef4444"></div>
+        <div class="color-option" style="background:#f59e0b" data-color="#f59e0b"></div>
+        <div class="color-option" style="background:#22c55e" data-color="#22c55e"></div>
+        <div class="color-option" style="background:#3b82f6" data-color="#3b82f6"></div>
+        <div class="color-option" style="background:#a855f7" data-color="#a855f7"></div>
+        <div class="color-option" style="background:#ec4899" data-color="#ec4899"></div>
+        <div class="color-option" style="background:#06b6d4" data-color="#06b6d4"></div>
+    </div>
+
+    <!-- Trash Bin -->
+    <div class="trash-bin" id="trash-bin" title="Drag here to delete">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="3 6 5 6 21 6"/>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+        </svg>
+    </div>
+
+    <!-- Tour Overlay -->
+    <div class="tour-overlay" id="tour-overlay">
+        <div class="tour-backdrop"></div>
+        <div class="tour-spotlight" id="tour-spotlight"></div>
+        <div class="tour-card" id="tour-card">
+            <div class="tour-header">
+                <span class="tour-step" id="tour-step">1 / 10</span>
+                <button class="tour-close" id="tour-close">×</button>
+            </div>
+            <div class="tour-body">
+                <h3 id="tour-title">Welcome to GigaFlow</h3>
+                <p id="tour-desc">This is a quick guide to get you started.</p>
+            </div>
+            <div class="tour-footer">
+                <button class="btn-secondary" id="tour-skip">Skip</button>
+                <div class="tour-nav">
+                    <button class="btn-secondary" id="tour-prev">Back</button>
+                    <button class="btn-primary" id="tour-next">Next</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Terminal Overlay -->
+    <div class="terminal-overlay" id="terminal-overlay">
+        <div class="terminal-window">
+            <div class="terminal-header">
+                <div class="terminal-title">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/>
+                    </svg>
+                    Pipeline Execution
+                </div>
+                <button class="terminal-close" id="terminal-close">×</button>
+            </div>
+            <div class="terminal-body" id="terminal-body"></div>
+            <div class="terminal-footer">
+                <span class="terminal-status" id="terminal-status">Ready</span>
+                <button class="btn-secondary btn-sm" id="terminal-clear">Clear</button>
+            </div>
+        </div>
+    </div>
+    <script src="/static/js/config.js"></script>
+    <script src="/static/js/app.js"></script>
+    <script src="/static/js/canvas.js"></script>
+    <script src="/static/js/canvas_chat.js"></script>
+    <script src="/static/js/chat.js"></script>
+
+    <script src="/static/js/connections.js"></script>
+
+    <script src="/static/js/local_settings.js"></script>
+    <script src="/static/js/pipelines.js"></script>
+    <script src="/static/js/rag.js"></script>
+    <script src="/static/js/tools.js"></script>
+    <script src="/static/js/tour.js"></script>
+    <script src="/static/js/ui.js"></script>
+    <script src="/static/js/context_menu.js"></script>
+</body>
+</html>
+

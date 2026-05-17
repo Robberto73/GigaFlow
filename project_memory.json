@@ -1,0 +1,49 @@
+{
+  "project_name": "GigaFlow",
+  "description": "Visual pipeline builder for AI agents using GigaChat or local LLMs",
+  "tool_requirements": "All tools must use the @gigaflow_tool decorator.\n\nExample structure:\n```python\ndef gigaflow_tool(description='', parameters=None, tool_type='generic'):\n    def decorator(func):\n        func._is_gigaflow_tool = True\n        func.description = description\n        func.parameters = parameters or {}\n        func.tool_type = tool_type\n        return func\n    return decorator\n\n@gigaflow_tool(\n    description='What this tool does',\n    parameters={'param_name': {'type': 'string', 'description': 'What it means'}},\n    tool_type='text|analytics|data|filesystem|ui|pipeline'\n)\ndef my_tool(param_name: str) -> str:\n    return param_name.upper()\n```\n\nRules:\n1. Always include the gigaflow_tool decorator\n2. Parameters must be typed\n3. Return a string or serializable value\n4. Keep tools focused on single responsibility\n5. Use async only if doing I/O\n",
+  "available_tools": [
+    {
+      "name": "pretty_json",
+      "description": "Pretty-print JSON string",
+      "type": "data"
+    },
+    {
+      "name": "summarize",
+      "description": "Summarize text to specified length",
+      "type": "text"
+    },
+    {
+      "name": "word_count",
+      "description": "Count words in text",
+      "type": "analytics"
+    },
+    {
+      "name": "analyze_folder_for_ui",
+      "description": "Generate UI description from folder contents for agent to build interface",
+      "type": "ui"
+    },
+    {
+      "name": "list_directory",
+      "description": "List all files in a directory recursively",
+      "type": "filesystem"
+    },
+    {
+      "name": "read_file",
+      "description": "Read text content of a file",
+      "type": "filesystem"
+    },
+    {
+      "name": "run_pipeline_tool",
+      "description": "Run a saved pipeline by ID",
+      "type": "pipeline"
+    },
+    {
+      "name": "save_file",
+      "description": "Save text content to a file (creates dirs if needed)",
+      "type": "filesystem"
+    }
+  ],
+  "pipeline_patterns": "Common pipeline patterns:\n- Input -> Agent -> Output (basic chat)\n- Input -> Agent -> Judge -> Output (quality control)\n- Input -> Agent -> Tool -> Output (tool usage)\n- Input -> RAG -> Agent -> Output (document Q&A)\n- Input -> Agent -> Condition -> [Agent A | Agent B] -> Output (branching)\n- Input -> Loop(Agent -> Judge) -> Output (iterative improvement)\n",
+  "custom_notes": ""
+}

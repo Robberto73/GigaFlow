@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GigaFlow — Visual Agent Builder</title>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/loader.min.js"></script>
+<style>
+  :root {
+    --bg: #ffffff;
+    --fg: #111111;
+    --fg2: #555555;
+    --border: #e5e5e5;
+    --border2: #d0d0d0;
+    --accent: #2563eb;
+    --accent2: #1d4ed8;
+    --node-bg: #ffffff;
+    --node-border: #d0d0d0;
+    --node-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    --sidebar-w: 260px;
+    --chat-h: 300px;
+    --radius: 10px;
+    --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html, body { width:100%; height:100%; overflow:hidden; font-family:var(--font); background:var(--bg); color:var(--fg); }
+
+  /* Top bar */
+  .topbar {
+    position:fixed; top:0; left:0; right:0; height:52px;
+    background:var(--bg); border-bottom:1px solid var(--border);
+    display:flex; align-items:center; justify-content:space-between; padding:0 20px; z-index:100;
+  }
+  .logo { font-size:18px; font-weight:700; letter-spacing:-0.5px; display:flex; align-items:center; gap:8px; }
+  .logo i { color:var(--accent); }
+  .topbar-actions { display:flex; gap:8px; }
+  .btn {
+    display:inline-flex; align-items:center; gap:6px; padding:7px 14px; border-radius:8px;
+    border:1px solid var(--border2); background:#fff; color:var(--fg); font-size:13px; font-weight:500;
+    cursor:pointer; transition:all .15s; user-select:none;
+  }
+  .btn:hover { background:#f5f5f5; border-color:#bbb; }
+  .btn:active { transform:translateY(1px); }
+  .btn.primary { background:var(--accent); color:#fff; border-color:var(--accent); }
+  .btn.primary:hover { background:var(--accent2); }
+  .btn.danger { color:#dc2626; border-color:#fecaca; background:#fef2f2; }
+  .btn.danger:hover { background:#fee2e2; }
+  .btn.small { padding:5px 10px; font-size:12px; }
+
+  /* Layout */
+  .layout { position:fixed; top:52px; left:0; right:0; bottom:0; display:flex; }
+  .palette {
+    width:var(--sidebar-w); background:#fafafa; border-right:1px solid var(--border);
+    display:flex; flex-direction:column; overflow-y:auto; padding:16px; gap:8px; z-index:50;
+  }
+  .palette h3 { font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--fg2); margin-bottom:4px; }
+  .palette-item {
+    display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:8px;
+    border:1px solid var(--border); background:#fff; cursor:grab; font-size:13px; font-weight:500;
+    transition:all .15s;
+  }
+  .palette-item:hover { border-color:var(--accent); box-shadow:0 2px 6px rgba(37,99,235,0.08); }
+  .palette-item i { width:18px; height:18px; color:var(--accent); }
+  .palette-item:active { cursor:grabbing; }
+
+  .canvas-wrap { flex:1; position:relative; overflow:hidden; background:#f7f7f7; }
+  canvas { display:block; width:100%; height:100%; cursor:grab; }
+  canvas.connecting { cursor:crosshair; }
+  canvas.panning { cursor:grabbing; }
+
+  .properties {
+    width:var(--sidebar-w); background:#fafafa; border-left:1px solid var(--border);
+    display:flex; flex-direction:column; overflow-y:auto; padding:16px; gap:12px; z-index:50;
+  }
+  .properties h3 { font-size:13px; font-weight:600; margin-bottom:4px; }
+  .prop-group { display:flex; flex-direction:column; gap:6px; }
+  .prop-group label { font-size:12px; color:var(--fg2); font-weight:500; }
+  .prop-group input, .prop-group textarea, .prop-group select {
+    padding:8px 10px; border:1px solid var(--border2); border-radius:6px; font-size:13px;
+    background:#fff; color:var(--fg); font-family:var(--font); outline:none; resize:vertical;
+  }
+  .prop-group input:focus, .prop-group textarea:focus, .prop-group select:focus { border-color:var(--accent); }
+  .prop-group textarea { min-height:80px; }
+  .prop-hint { font-size:11px; color:#888; }
+
+  /* Bottom chat / editor panel */
+  .bottom-panel {
+    position:fixed; left:var(--sidebar-w); right:var(--sidebar-w); bottom:0;
+    height:var(--chat-h); background:#fff; border-top:1px solid var(--border);
+    display:flex; flex-direction:column; z-index:80; transition:transform .25s ease;
+  }
+  .bottom-panel.collapsed { transform:translateY(calc(var(--chat-h) - 36px)); }
+  .bp-header {
+    height:36px; display:flex; align-items:center; justify-content:space-between;
+    padding:0 16px; border-bottom:1px solid var(--border); background:#fafafa; cursor:pointer;
+  }
+  .bp-tabs { display:flex; gap:4px; }
+  .bp-tab { padding:6px 12px; font-size:12px; font-weight:500; border-radius:6px; cursor:pointer; }
+  .bp-tab.active { background:#fff; border:1px solid var(--border2); }
+  .bp-body { flex:1; display:flex; overflow:hidden; }
+  .bp-pane { flex:1; display:none; flex-direction:column; overflow:hidden; }
+  .bp-pane.active { display:flex; }
+
+  /* Chat */
+  .chat-messages { flex:1; overflow-y:auto; padding:12px 16px; display:flex; flex-direction:column; gap:10px; }
+  .msg { max-width:80%; padding:10px 14px; border-radius:12px; font-size:13px; line-height:1.5; word-break:break-word; }
+  .msg.user { align-self:flex-end; background:var(--accent); color:#fff; border-bottom-right-radius:4px; }
+  .msg.assistant { align-self:flex-start; background:#f0f0f0; color:var(--fg); border-bottom-left-radius:4px; }
+  .msg.system { align-self:center; font-size:11px; color:#888; background:transparent; padding:4px; }
+  .chat-input-wrap { display:flex; gap:8px; padding:10px 16px; border-top:1px solid var(--border); }
+  .chat-input-wrap input { flex:1; padding:8px 12px; border:1px solid var(--border2); border-radius:8px; font-size:13px; outline:none; }
+  .chat-input-wrap input:focus { border-color:var(--accent); }
+
+  /* Editor */
+  #editor-container { flex:1; position:relative; }
+
+  /* Toast */
+  .toast {
+    position:fixed; top:64px; left:50%; transform:translateX(-50%) translateY(-20px);
+    background:#111; color:#fff; padding:10px 18px; border-radius:8px; font-size:13px;
+    opacity:0; pointer-events:none; transition:all .3s; z-index:200;
+  }
+  .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+  /* Modal */
+  .modal-overlay {
+    position:fixed; inset:0; background:rgba(0,0,0,0.3); display:none; align-items:center; justify-content:center; z-index:300;
+  }
+  .modal-overlay.show { display:flex; }
+  .modal {
+    background:#fff; border-radius:12px; width:720px; max-width:90vw; max-height:85vh;
+    display:flex; flex-direction:column; box-shadow:0 20px 60px rgba(0,0,0,0.15);
+  }
+  .modal-header { padding:16px 20px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; }
+  .modal-body { flex:1; padding:16px 20px; overflow:auto; }
+  .modal-footer { padding:12px 20px; border-top:1px solid var(--border); display:flex; justify-content:flex-end; gap:8px; }
+  .modal-editor { width:100%; height:400px; border:1px solid var(--border2); border-radius:8px; }
+
+  /* Minimap */
+  .minimap {
+    position:absolute; right:16px; top:16px; width:160px; height:100px;
+    background:rgba(255,255,255,0.9); border:1px solid var(--border); border-radius:8px;
+    z-index:40; pointer-events:none; opacity:0.7;
+  }
+
+  /* Connection line label */
+  .edge-label { font-size:10px; fill:#666; }
+</style>
+</head>
+<body>
+
+<!-- Top Bar -->
+<div class="topbar">
+  <div class="logo"><i data-lucide="workflow"></i> GigaFlow</div>
+  <div class="topbar-actions">
+    <button class="btn small" onclick="app.newPipeline()"><i data-lucide="file-plus"></i> Новый</button>
+    <button class="btn small" onclick="app.savePipeline()"><i data-lucide="save"></i> Сохранить</button>
+    <button class="btn small" onclick="app.loadPipeline()"><i data-lucide="folder-open"></i> Загрузить</button>
+    <button class="btn small" onclick="app.toggleRAG()"><i data-lucide="database"></i> RAG</button>
+    <button class="btn primary" onclick="app.runPipeline()"><i data-lucide="play"></i> Запустить</button>
+    <button class="btn danger small" onclick="app.clearCanvas()"><i data-lucide="trash-2"></i></button>
+  </div>
+</div>
+
+<!-- Layout -->
+<div class="layout">
+  <!-- Palette -->
+  <div class="palette" id="palette">
+    <h3>Узлы</h3>
+    <div class="palette-item" data-type="start"><i data-lucide="flag"></i> Старт</div>
+    <div class="palette-item" data-type="agent"><i data-lucide="bot"></i> Агент GigaChat</div>
+    <div class="palette-item" data-type="tool"><i data-lucide="wrench"></i> Тулз</div>
+    <div class="palette-item" data-type="judge"><i data-lucide="scale"></i> Судья</div>
+    <div class="palette-item" data-type="rag"><i data-lucide="search"></i> RAG Поиск</div>
+    <div class="palette-item" data-type="loop"><i data-lucide="repeat"></i> Цикл</div>
+    <div class="palette-item" data-type="condition"><i data-lucide="git-branch"></i> Условие</div>
+    <div class="palette-item" data-type="chat"><i data-lucide="message-square"></i> Чат</div>
+    <div class="palette-item" data-type="file_reader"><i data-lucide="file-text"></i> Чтение файла</div>
+    <div class="palette-item" data-type="end"><i data-lucide="flag-off"></i> Конец</div>
+    <h3 style="margin-top:12px">Инструменты</h3>
+    <button class="btn small" style="width:100%; justify-content:center" onclick="app.openEditor()"><i data-lucide="code-2"></i> Новый агент/тулз</button>
+    <button class="btn small" style="width:100%; justify-content:center; margin-top:6px" onclick="app.reloadRegistry()"><i data-lucide="refresh-cw"></i> Обновить реестр</button>
+  </div>
+
+  <!-- Canvas -->
+  <div class="canvas-wrap" id="canvasWrap">
+    <canvas id="canvas"></canvas>
+    <canvas class="minimap" id="minimap"></canvas>
+  </div>
+
+  <!-- Properties -->
+  <div class="properties" id="properties">
+    <div style="color:#888; font-size:13px; text-align:center; margin-top:40px;">
+      <i data-lucide="mouse-pointer-2" style="width:32px;height:32px;margin-bottom:12px;opacity:.4"></i><br>
+      Выберите узел для редактирования
+    </div>
+  </div>
+</div>
+
+<!-- Bottom Panel -->
+<div class="bottom-panel" id="bottomPanel">
+  <div class="bp-header" onclick="app.toggleBottom()">
+    <div class="bp-tabs">
+      <div class="bp-tab active" data-tab="chat" onclick="event.stopPropagation();app.switchTab('chat')">💬 Чат GigaChat</div>
+      <div class="bp-tab" data-tab="editor" onclick="event.stopPropagation();app.switchTab('editor')">📝 Редактор кода</div>
+      <div class="bp-tab" data-tab="logs" onclick="event.stopPropagation();app.switchTab('logs')">📋 Логи</div>
+    </div>
+    <i data-lucide="chevron-down" id="bpChevron"></i>
+  </div>
+  <div class="bp-body">
+    <div class="bp-pane active" id="tab-chat">
+      <div class="chat-messages" id="chatMessages"></div>
+      <div class="chat-input-wrap">
+        <input type="file" id="chatFile" style="display:none" onchange="app.onChatFile(this)">
+        <button class="btn small" onclick="document.getElementById('chatFile').click()"><i data-lucide="paperclip"></i></button>
+        <input type="text" id="chatInput" placeholder="Напишите сообщение..." onkeydown="if(event.key==='Enter')app.sendChat()">
+        <button class="btn primary small" onclick="app.sendChat()"><i data-lucide="send"></i></button>
+      </div>
+    </div>
+    <div class="bp-pane" id="tab-editor">
+      <div style="display:flex; gap:8px; padding:8px 16px; border-bottom:1px solid var(--border); align-items:center;">
+        <input id="editorName" placeholder="Имя агента (без .py)" style="flex:1; padding:6px 10px; border:1px solid var(--border2); border-radius:6px; font-size:13px;">
+        <button class="btn small" onclick="app.validateCode()"><i data-lucide="check-circle"></i> Валидировать</button>
+        <button class="btn primary small" onclick="app.saveCode()"><i data-lucide="save"></i> Сохранить</button>
+      </div>
+      <div id="editor-container"></div>
+    </div>
+    <div class="bp-pane" id="tab-logs">
+      <div class="chat-messages" id="logMessages" style="font-family:monospace; font-size:12px;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-header">
+      <span id="modalTitle">Редактор</span>
+      <button class="btn small" onclick="app.closeModal()"><i data-lucide="x"></i></button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-footer" id="modalFooter"></div>
+  </div>
+</div>
+
+<script>
