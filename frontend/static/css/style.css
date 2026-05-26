@@ -534,6 +534,8 @@ html, body {
     margin: 0 auto;
     width: 100%;
     padding: 0 20px;
+    height: 100%;
+    overflow: hidden;
 }
 
 .chat-messages {
@@ -543,6 +545,9 @@ html, body {
     display: flex;
     flex-direction: column;
     gap: 16px;
+    scroll-behavior: smooth;
+    max-height: calc(100% - 80px);
+    height: 100%;
 }
 
 .message {
@@ -584,6 +589,11 @@ html, body {
     line-height: 1.6;
     color: var(--text-primary);
     border: 1px solid var(--border);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    word-break: break-word;
+    hyphens: auto;
+    max-width: 100%;
 }
 
 .message.user .message-content {

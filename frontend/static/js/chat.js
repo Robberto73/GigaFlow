@@ -12,7 +12,11 @@ function addChatMessage(role, content) {
         <div class="message-content">${formatMessage(content)}</div>
     `;
     chatMessages.appendChild(msg);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
+    
+    // Задержка для обеспечения корректной прокрутки после рендеринга
+    setTimeout(() => {
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }, 10);
 }
 
 function escapeHtml(text) {
@@ -92,7 +96,11 @@ async function sendChatMessage() {
     loadingMsg.id = loadingId;
     loadingMsg.innerHTML = `<div class="message-avatar">AI</div><div class="message-content"><em>Thinking...</em></div>`;
     chatMessages.appendChild(loadingMsg);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
+    
+    // Задержка для обеспечения корректной прокрутки после рендеринга
+    setTimeout(() => {
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }, 10);
 
     try {
         const response = await fetch(`${API_BASE}/chat`, {
