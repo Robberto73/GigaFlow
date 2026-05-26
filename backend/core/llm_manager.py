@@ -133,21 +133,21 @@ class LLMManager:
     ) -> Dict[str, Any]:
         llm = await self._get_llm()
 
-        prompt = f"""Ty - nezavisimyy sudya. Otseni kachestvo otveta agenta.
+        prompt = f"""Вы - независимый судья. Оцените качество ответа агента.
 
-Kriteriy otsenki: {criteria}
+Критерий оценки: {criteria}
 
-Ishodnyy zapros: {input_text}
+Исходный запрос: {input_text}
 
-Otvet agenta: {output_text}
+Ответ агента: {output_text}
 
-Kontekst: {context}
+Контекст: {context}
 
-Otseni otvet po shkale ot 0 do 10.
-Verni TOLKO JSON v formate:
-{{"score": chislo, "reason": "kratkoe obyasneniye", "passed": true/false}}
+Оцените ответ по шкале от 0 до 10.
+Верните ТОЛЬКО JSON в формате:
+{{"score": число, "reason": "краткое объяснение", "passed": true/false}}
 
-Otsenka:"""
+Оценка:"""
 
         response = await llm.ainvoke([HumanMessage(content=prompt)])
 
@@ -161,17 +161,17 @@ Otsenka:"""
     async def validate_tool_code(self, code: str) -> Dict[str, Any]:
         llm = await self._get_llm()
 
-        prompt = f"""Ty - kod-revyuer Python. Provery kod tulza na oshibki, bezopasnost i korrektnost.
+        prompt = f"""Вы - код-ревьюер Python. Проверьте код инструмента на ошибки, безопасность и корректность.
 
-Kod:
+Код:
 ```python
 {code}
 ```
 
-Verni TOLKO JSON:
-{{"valid": true/false, "errors": ["spisok oshibok"], "warnings": ["spisok preduprezhdeniy"], "suggestions": ["uluchsheniya"]}}
+Верните ТОЛЬКО JSON:
+{{"valid": true/false, "errors": ["список ошибок"], "warnings": ["список предупреждений"], "suggestions": ["улучшения"]}}
 
-Rezultat:"""
+Результат:"""
 
         response = await llm.ainvoke([HumanMessage(content=prompt)])
 
@@ -180,7 +180,7 @@ Rezultat:"""
             result = json.loads(response.content.strip().strip("`").strip("json").strip())
             return result
         except:
-            return {"valid": False, "errors": ["Oshibka parsinka validatsii"], "warnings": [], "suggestions": []}
+            return {"valid": False, "errors": ["Ошибка парсинга валидации"], "warnings": [], "suggestions": []}
 
     def get_provider_info(self) -> Dict[str, str]:
         return {
