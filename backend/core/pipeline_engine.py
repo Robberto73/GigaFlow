@@ -249,7 +249,7 @@ class PipelineEngine:
             if feedback_mode == "score_only":
                 return str(result.get("score", 0))
             elif feedback_mode == "score_and_reason":
-                return f"Score: {result.get('score', 0)}\nReason: {result.get('reason', '')}"
+                return f"Оценка: {result.get('score', 0)}\nПричина: {result.get('reason', '')}"
             return json.dumps(result, ensure_ascii=False)
 
         elif node.type == NodeType.LOOP:

@@ -8,8 +8,8 @@ DEFAULT_MEMORY = {
     "project_name": "GigaFlow",
     "description": "Visual pipeline builder for AI agents using GigaChat or local LLMs",
     "tool_requirements": (
-        "All tools must use the @gigaflow_tool decorator.\n\n"
-        "Example structure:\n"
+        "Все инструменты должны использовать декоратор @gigaflow_tool.\n\n"
+        "Пример структуры:\n"
         "```python\n"
         "def gigaflow_tool(description='', parameters=None, tool_type='generic'):\n"
         "    def decorator(func):\n"
@@ -20,19 +20,19 @@ DEFAULT_MEMORY = {
         "        return func\n"
         "    return decorator\n\n"
         "@gigaflow_tool(\n"
-        "    description='What this tool does',\n"
-        "    parameters={'param_name': {'type': 'string', 'description': 'What it means'}},\n"
+        "    description='Что делает этот инс��румент',\n"
+        "    parameters={'param_name': {'type': 'string', 'description': 'Что означает параметр'}},\n"
         "    tool_type='text|analytics|data|filesystem|ui|pipeline'\n"
         ")\n"
         "def my_tool(param_name: str) -> str:\n"
         "    return param_name.upper()\n"
         "```\n\n"
-        "Rules:\n"
-        "1. Always include the gigaflow_tool decorator\n"
-        "2. Parameters must be typed\n"
-        "3. Return a string or serializable value\n"
-        "4. Keep tools focused on single responsibility\n"
-        "5. Use async only if doing I/O\n"
+        "Правила:\n"
+        "1. Всегда используйте декоратор gigaflow_tool\n"
+        "2. Параметры должны быть типизированы\n"
+        "3. Возвращайте строку или сериализуемое значение\n"
+        "4. Сохраняйте у инструментов одну ответственность\n"
+        "5. Используйте async только при работе с вводом-выводом\n"
     ),
     "available_tools": [],
     "pipeline_patterns": (

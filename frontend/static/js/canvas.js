@@ -586,21 +586,11 @@ document.addEventListener('mouseup', (e) => {
 });
 
 document.addEventListener('keydown', (e) => {
-    // Prevent deletion when typing in input fields
+    // Полностью отключаем удаление объектов клавишами Delete и Backspace
+    // Удаление возможно только через кнопки на самих объектах
     if (e.key === 'Delete' || e.key === 'Backspace') {
-        // Check if focus is in an input, textarea, or contenteditable
-        const activeElement = document.activeElement;
-        const isInput = activeElement && (
-            activeElement.tagName === 'INPUT' || 
-            activeElement.tagName === 'TEXTAREA' || 
-            activeElement.isContentEditable
-        );
-        
-        // Only allow deletion if not typing in an input
-        if (!isInput) {
-            if (state.selectedNode) deleteSelectedNode();
-            if (state.selectedEdge) deleteSelectedEdge();
-        }
+        e.preventDefault();
+        return;
     }
 });
 
